@@ -3,7 +3,7 @@
   "solution": {
     "name": "headers-navigation-client-side-solution",
     "id": "8fd1ec1d-b9b5-4d37-95cb-dc3c8bf518f8",
-    "version": "1.0.0.0",
+    "version": "3.0.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -30,7 +30,7 @@
         "title": "Application Extension - Deployment of custom action",
         "description": "Deploys a custom action with ClientSideComponentId association",
         "id": "3d62953d-698a-4294-a3c3-30a4a0194809",
-        "version": "1.0.0.0",
+        "version": "3.0.0.0",
         "assets": {
           "elementManifests": [
             "elements.xml",

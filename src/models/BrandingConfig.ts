@@ -9,9 +9,12 @@ export interface IBrandingConfig {
   hoverColor?: string;
   logoUrl?: string;
   searchPlaceholder?: string;
+  /** Footer background color (e.g. "#114461") */
+  footerBg?: string;
+  /** Footer text / link color (e.g. "#ffffff") */
+  footerTextColor?: string;
+  /** Copyright text rendered in footer left area */
+  copyrightText?: string;
   // Future stages:
-  // footerBg?: string;
-  // footerTextColor?: string;
-  // copyrightText?: string;
   // cacheTtlMinutes?: number;
 }

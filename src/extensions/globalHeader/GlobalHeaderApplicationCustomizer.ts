@@ -7,6 +7,7 @@ import {
 } from "@microsoft/sp-application-base";
 
 import Header, { IHeaderProps } from "../../components/Header/Header";
+import Footer, { IFooterProps } from "../../components/Footer/Footer";
 import { getSP } from "../../services/spFactory";
 
 export interface IGlobalHeaderApplicationCustomizerProperties {
@@ -25,10 +26,21 @@ const HIDE_SITE_NAV_CSS = `
   }
 `;
 
+/** Unique DOM id used to prevent duplicate footer host elements */
+const FOOTER_HOST_ID = "ppr-global-footer-host";
+
 export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCustomizer<IGlobalHeaderApplicationCustomizerProperties> {
-  private _placeholder: PlaceholderContent | undefined;
-  private _isRendered: boolean = false;
-  private _renderContainer: HTMLElement | undefined;
+  // ─── Header State ──────────────────────────────────────────────
+  private _headerPlaceholder: PlaceholderContent | undefined;
+  private _isHeaderRendered: boolean = false;
+  private _headerRenderContainer: HTMLElement | undefined;
+
+  // ─── Footer State ──────────────────────────────────────────────
+  private _footerPlaceholder: PlaceholderContent | undefined;
+  private _isFooterRendered: boolean = false;
+  private _footerRenderContainer: HTMLElement | undefined;
+
+  // ─── Shared ────────────────────────────────────────────────────
   private _styleElement: HTMLStyleElement | undefined;
 
   public onInit(): Promise<void> {
@@ -65,39 +77,41 @@ export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCu
     console.log("[GlobalHeader] Injected CSS to hide default site navigation");
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  //  RENDER ORCHESTRATOR
+  // ═══════════════════════════════════════════════════════════════════
+
   private _renderPlaceholders(): void {
-    if (this._isRendered) {
+    this._renderHeader();
+    this._renderFooter();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  //  HEADER
+  // ═══════════════════════════════════════════════════════════════════
+
+  private _renderHeader(): void {
+    if (this._isHeaderRendered) {
       return;
     }
 
-    console.log("[GlobalHeader] _renderPlaceholders called");
+    console.log("[GlobalHeader] _renderHeader called");
 
     // Try Top placeholder
-    if (!this._placeholder) {
-      this._placeholder = this.context.placeholderProvider.tryCreateContent(
+    if (!this._headerPlaceholder) {
+      this._headerPlaceholder = this.context.placeholderProvider.tryCreateContent(
         PlaceholderName.Top,
-        { onDispose: this._onDispose.bind(this) }
+        { onDispose: this._onDisposeHeader.bind(this) }
       );
-      if (this._placeholder) {
+      if (this._headerPlaceholder) {
         console.log("[GlobalHeader] Top placeholder acquired");
       }
     }
 
-    // Fallback: try Bottom placeholder
-    if (!this._placeholder) {
-      this._placeholder = this.context.placeholderProvider.tryCreateContent(
-        PlaceholderName.Bottom,
-        { onDispose: this._onDispose.bind(this) }
-      );
-      if (this._placeholder) {
-        console.log("[GlobalHeader] Bottom placeholder acquired (fallback)");
-      }
-    }
-
     // Render into placeholder if available
-    if (this._placeholder && this._placeholder.domElement) {
+    if (this._headerPlaceholder && this._headerPlaceholder.domElement) {
       console.log("[GlobalHeader] Rendering React Header into placeholder");
-      this._mountReactComponent(this._placeholder.domElement);
+      this._mountHeader(this._headerPlaceholder.domElement);
       return;
     }
 
@@ -109,7 +123,7 @@ export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCu
       const wrapper: HTMLDivElement = document.createElement("div");
       wrapper.id = "globalHeaderWrapper";
       suiteNav.parentElement.insertBefore(wrapper, suiteNav.nextSibling);
-      this._mountReactComponent(wrapper);
+      this._mountHeader(wrapper);
       return;
     }
 
@@ -119,18 +133,17 @@ export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCu
       const bodyWrapper: HTMLDivElement = document.createElement("div");
       bodyWrapper.id = "globalHeaderWrapper";
       document.body.insertBefore(bodyWrapper, document.body.firstChild);
-      this._mountReactComponent(bodyWrapper);
+      this._mountHeader(bodyWrapper);
       return;
     }
 
-    console.warn("[GlobalHeader] No anchor found. Will retry on changedEvent.");
+    console.warn("[GlobalHeader] No header anchor found. Will retry on changedEvent.");
   }
 
   /**
-   * Mounts the React Header into the given container and tracks it
-   * so _onDispose can cleanly unmount.
+   * Mounts the React Header into the given container.
    */
-  private _mountReactComponent(container: HTMLElement): void {
+  private _mountHeader(container: HTMLElement): void {
     const listTitle: string = this.properties.listTitle || "GlobalNav";
 
     const element: React.ReactElement<IHeaderProps> = React.createElement(
@@ -142,25 +155,128 @@ export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCu
     );
 
     ReactDom.render(element, container);
-    this._renderContainer = container;
-    this._isRendered = true;
+    this._headerRenderContainer = container;
+    this._isHeaderRendered = true;
     console.log("[GlobalHeader] React Header component rendered");
   }
 
-  private _onDispose(): void {
-    console.log("[GlobalHeader] Disposing");
+  private _onDisposeHeader(): void {
+    console.log("[GlobalHeader] Disposing header");
 
-    // Unmount React from the tracked container
-    if (this._renderContainer) {
-      ReactDom.unmountComponentAtNode(this._renderContainer);
+    if (this._headerRenderContainer) {
+      ReactDom.unmountComponentAtNode(this._headerRenderContainer);
 
       // If we created a fallback wrapper (not a placeholder), remove it from DOM
-      if (this._renderContainer.id === "globalHeaderWrapper" && this._renderContainer.parentElement) {
-        this._renderContainer.parentElement.removeChild(this._renderContainer);
+      if (
+        this._headerRenderContainer.id === "globalHeaderWrapper" &&
+        this._headerRenderContainer.parentElement
+      ) {
+        this._headerRenderContainer.parentElement.removeChild(this._headerRenderContainer);
       }
 
-      this._renderContainer = undefined;
+      this._headerRenderContainer = undefined;
     }
+
+    this._headerPlaceholder = undefined;
+    this._isHeaderRendered = false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  //  FOOTER
+  // ═══════════════════════════════════════════════════════════════════
+
+  private _renderFooter(): void {
+    if (this._isFooterRendered) {
+      return;
+    }
+
+    console.log("[GlobalFooter] _renderFooter called");
+
+    // Try Bottom placeholder
+    if (!this._footerPlaceholder) {
+      this._footerPlaceholder = this.context.placeholderProvider.tryCreateContent(
+        PlaceholderName.Bottom,
+        { onDispose: this._onDisposeFooter.bind(this) }
+      );
+      if (this._footerPlaceholder) {
+        console.log("[GlobalFooter] Bottom placeholder acquired");
+      }
+    }
+
+    // Render into placeholder if available
+    if (this._footerPlaceholder && this._footerPlaceholder.domElement) {
+      console.log("[GlobalFooter] Rendering React Footer into Bottom placeholder");
+      this._mountFooter(this._footerPlaceholder.domElement);
+      return;
+    }
+
+    // Fallback: append to body (prevent duplicates via unique id)
+    if (document.body) {
+      const existing = document.getElementById(FOOTER_HOST_ID);
+      if (existing) {
+        console.log("[GlobalFooter] Reusing existing footer host element");
+        this._mountFooter(existing);
+        return;
+      }
+
+      console.log("[GlobalFooter] Appending footer host to body (fallback)");
+      const footerHost: HTMLDivElement = document.createElement("div");
+      footerHost.id = FOOTER_HOST_ID;
+      document.body.appendChild(footerHost);
+      this._mountFooter(footerHost);
+      return;
+    }
+
+    console.warn("[GlobalFooter] No footer anchor found. Will retry on changedEvent.");
+  }
+
+  /**
+   * Mounts the React Footer into the given container.
+   */
+  private _mountFooter(container: HTMLElement): void {
+    const element: React.ReactElement<IFooterProps> = React.createElement(
+      Footer,
+      {
+        context: this.context as unknown as IFooterProps["context"],
+      }
+    );
+
+    ReactDom.render(element, container);
+    this._footerRenderContainer = container;
+    this._isFooterRendered = true;
+    console.log("[GlobalFooter] React Footer component rendered");
+  }
+
+  private _onDisposeFooter(): void {
+    console.log("[GlobalFooter] Disposing footer");
+
+    if (this._footerRenderContainer) {
+      ReactDom.unmountComponentAtNode(this._footerRenderContainer);
+
+      // If we created a fallback host (not a placeholder), remove it from DOM
+      if (
+        this._footerRenderContainer.id === FOOTER_HOST_ID &&
+        this._footerRenderContainer.parentElement
+      ) {
+        this._footerRenderContainer.parentElement.removeChild(this._footerRenderContainer);
+      }
+
+      this._footerRenderContainer = undefined;
+    }
+
+    this._footerPlaceholder = undefined;
+    this._isFooterRendered = false;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  //  GLOBAL DISPOSE
+  // ═══════════════════════════════════════════════════════════════════
+
+  protected onDispose(): void {
+    console.log("[GlobalHeader] Disposing all");
+
+    this._onDisposeHeader();
+    this._onDisposeFooter();
 
     // Remove injected style
     if (this._styleElement && this._styleElement.parentNode) {
@@ -168,7 +284,6 @@ export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCu
       this._styleElement = undefined;
     }
 
-    this._placeholder = undefined;
-    this._isRendered = false;
+    super.onDispose();
   }
 }

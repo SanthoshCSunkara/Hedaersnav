@@ -27,6 +27,9 @@ const FULL_SELECT = [
   "HoverColor",
   "LogoUrl",
   "SearchPlaceholder",
+  "FooterBg",
+  "FooterTextColor",
+  "CopyrightText",
 ];
 
 const MINIMAL_SELECT = ["HeaderRow1Bg"];
@@ -69,6 +72,9 @@ export class BrandingConfigService {
         hoverColor: raw.HoverColor || undefined,
         logoUrl: parseUrlField(raw.LogoUrl),
         searchPlaceholder: raw.SearchPlaceholder || undefined,
+        footerBg: raw.FooterBg || undefined,
+        footerTextColor: raw.FooterTextColor || undefined,
+        copyrightText: raw.CopyrightText || undefined,
       };
     } catch (fullErr) {
       console.warn("[BrandingConfigService] Full fetch failed, trying minimal:", fullErr);

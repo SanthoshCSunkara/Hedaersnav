@@ -16,6 +16,21 @@ function parseUrlField(
 
 const LIST_TITLE = "BrandingConfig";
 
+/**
+ * Full set of fields we attempt to fetch from BrandingConfig.
+ * If columns don't exist yet the service falls back gracefully.
+ */
+const FULL_SELECT = [
+  "HeaderRow1Bg",
+  "MiddleRowBg",
+  "HeaderRow2Bg",
+  "HoverColor",
+  "LogoUrl",
+  "SearchPlaceholder",
+];
+
+const MINIMAL_SELECT = ["HeaderRow1Bg"];
+
 export class BrandingConfigService {
   private readonly _sp: SPFI;
 
@@ -28,15 +43,14 @@ export class BrandingConfigService {
    * If multiple rows are enabled, takes the first by Modified descending.
    * Returns undefined if no enabled row exists or on error.
    *
-   * Tries to fetch all branding fields first; if that fails (e.g. columns
-   * don't exist yet), falls back to fetching only HeaderRow1Bg.
+   * Tries all fields first; falls back to HeaderRow1Bg only.
    */
   public async getConfig(): Promise<IBrandingConfig | undefined> {
-    // Try full fetch with all fields
+    // Try full fetch
     try {
       const rows = await this._sp.web.lists
         .getByTitle(LIST_TITLE)
-        .items.select("HeaderRow1Bg", "MiddleRowBg", "LogoUrl", "SearchPlaceholder")
+        .items.select(...FULL_SELECT)
         .filter("Enabled eq 1")
         .orderBy("Modified", false)
         .top(1)();
@@ -51,31 +65,29 @@ export class BrandingConfigService {
       return {
         headerRow1Bg: raw.HeaderRow1Bg || undefined,
         middleRowBg: raw.MiddleRowBg || undefined,
+        headerRow2Bg: raw.HeaderRow2Bg || undefined,
+        hoverColor: raw.HoverColor || undefined,
         logoUrl: parseUrlField(raw.LogoUrl),
         searchPlaceholder: raw.SearchPlaceholder || undefined,
       };
     } catch (fullErr) {
-      console.warn("[BrandingConfigService] Full fetch failed, trying minimal fields:", fullErr);
+      console.warn("[BrandingConfigService] Full fetch failed, trying minimal:", fullErr);
     }
 
-    // Fallback: fetch only HeaderRow1Bg (the original field)
+    // Fallback: minimal fields
     try {
       const rows = await this._sp.web.lists
         .getByTitle(LIST_TITLE)
-        .items.select("HeaderRow1Bg")
+        .items.select(...MINIMAL_SELECT)
         .filter("Enabled eq 1")
         .orderBy("Modified", false)
         .top(1)();
 
-      if (rows.length === 0) {
-        return undefined;
-      }
+      if (rows.length === 0) return undefined;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const raw: any = rows[0];
-      return {
-        headerRow1Bg: raw.HeaderRow1Bg || undefined,
-      };
+      return { headerRow1Bg: raw.HeaderRow1Bg || undefined };
     } catch (minErr) {
       console.warn("[BrandingConfigService] Minimal fetch also failed:", minErr);
       return undefined;

@@ -11,6 +11,7 @@ export interface IHeaderViewProps {
   logoUrl: string | undefined;
   searchPlaceholder: string;
   siteUrl: string;
+  siteTitle: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ const HeaderView: React.FC<IHeaderViewProps> = ({
   logoUrl,
   searchPlaceholder,
   siteUrl,
+  siteTitle,
 }) => {
   // Track which desktop dropdown is open (by parent id, or -1 for none)
   const [openDropdown, setOpenDropdown] = React.useState<number>(-1);
@@ -293,17 +295,18 @@ const HeaderView: React.FC<IHeaderViewProps> = ({
       {/* ── Row 2: Logo + Search Bar ── */}
       <div className={styles.middleRow} style={{ backgroundColor: middleRowBg }}>
         <div className={styles.middleRowInner}>
-          {/* Logo */}
+          {/* Logo + Site Title */}
           <a href={siteUrl} className={styles.logoLink} title="Home">
             {logoUrl ? (
               <img
                 src={logoUrl}
-                alt="Site Logo"
+                alt={siteTitle}
                 className={styles.logoImage}
               />
             ) : (
-              <span className={styles.logoFallback}>&#9733; Intranet</span>
+              <span className={styles.logoFallback}>&#9733;</span>
             )}
+            <span className={styles.siteTitle}>{siteTitle}</span>
           </a>
 
           {/* Search Bar */}

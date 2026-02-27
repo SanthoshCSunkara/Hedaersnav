@@ -330,13 +330,20 @@
   white-space: nowrap;
 }
 
+.siteTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+  white-space: nowrap;
+  margin-left: 20px;
+}
+
 /* Search Form */
 .searchForm {
   display: flex;
   align-items: center;
-  max-width: 400px;
-  width: 100%;
-  margin-left: 20px;
+  flex: 0 1 360px;
+  margin-left: auto;
 }
 
 .searchInput {

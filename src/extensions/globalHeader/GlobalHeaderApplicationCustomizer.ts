@@ -19,6 +19,10 @@ const HIDE_SITE_NAV_CSS = `
   [data-automationid="HorizontalNav"] {
     display: none !important;
   }
+  /* Hide the default site header row (site logo + title + nav links) */
+  [data-automationid="SiteHeader"] {
+    display: none !important;
+  }
 `;
 
 export default class GlobalHeaderApplicationCustomizer extends BaseApplicationCustomizer<IGlobalHeaderApplicationCustomizerProperties> {

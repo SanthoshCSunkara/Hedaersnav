@@ -5,20 +5,19 @@ import { getSP } from "../../services/spFactory";
 import { GlobalNavService } from "../../services/GlobalNavService";
 import { BrandingConfigService } from "../../services/BrandingConfigService";
 import HeaderView from "./HeaderView";
+import DivisionNav from "../DivisionNav/DivisionNav";
 import styles from "./Header.module.scss";
 
 // ─── Default Colors / Values ─────────────────────────────────────────
 
 const DEFAULT_ROW1_BG = "#49742A";
 const DEFAULT_MIDDLE_ROW_BG = "#FFFFFF";
+const DEFAULT_ROW2_BG = "#99AE7A";
 const DEFAULT_SEARCH_PLACEHOLDER = "Search this site";
+const DIVISION_NAV_LIST = "DivisionNav";
 
 // ─── Debug Fallback ──────────────────────────────────────────────────
 
-/**
- * Hardcoded items used ONLY when the SharePoint list fetch fails.
- * Includes children so dropdown can be tested during local debug.
- */
 const DEBUG_FALLBACK_ITEMS: IGlobalNavItem[] = [
   {
     id: 901, title: "Applications", url: "/sites/IntranetConfig/SitePages/Home.aspx",
@@ -44,7 +43,7 @@ const DEBUG_FALLBACK_ITEMS: IGlobalNavItem[] = [
 export interface IHeaderProps {
   context: {
     pageContext: {
-      web: { absoluteUrl: string };
+      web: { absoluteUrl: string; title: string };
       legacyPageContext: { formDigestTimeoutSeconds: number; formDigestValue: string };
     };
   };
@@ -55,13 +54,27 @@ export interface IHeaderProps {
 
 interface IHeaderState {
   items: IGlobalNavItem[];
+  divisionItems: IGlobalNavItem[];
   row1Bg: string;
   middleRowBg: string;
+  row2Bg: string;
+  hoverColor: string | undefined;
   logoUrl: string | undefined;
   searchPlaceholder: string;
   siteUrl: string;
+  siteTitle: string;
   loading: boolean;
   error: boolean;
+}
+
+// ─── Helper ──────────────────────────────────────────────────────────
+
+/** Normalizes a logo URL — makes relative paths absolute */
+function normalizeLogoUrl(url: string | undefined, webAbsoluteUrl: string): string | undefined {
+  if (!url) return undefined;
+  if (url.indexOf("http://") === 0 || url.indexOf("https://") === 0) return url;
+  if (url.indexOf("/") === 0) return url;
+  return webAbsoluteUrl + "/" + url;
 }
 
 // ─── Container Component ─────────────────────────────────────────────
@@ -69,11 +82,15 @@ interface IHeaderState {
 const Header: React.FC<IHeaderProps> = ({ context, listTitle }) => {
   const [state, setState] = React.useState<IHeaderState>({
     items: [],
+    divisionItems: [],
     row1Bg: DEFAULT_ROW1_BG,
     middleRowBg: DEFAULT_MIDDLE_ROW_BG,
+    row2Bg: DEFAULT_ROW2_BG,
+    hoverColor: undefined,
     logoUrl: undefined,
     searchPlaceholder: DEFAULT_SEARCH_PLACEHOLDER,
     siteUrl: context.pageContext.web.absoluteUrl,
+    siteTitle: context.pageContext.web.title || "Intranet",
     loading: true,
     error: false,
   });
@@ -86,31 +103,42 @@ const Header: React.FC<IHeaderProps> = ({ context, listTitle }) => {
         const sp = getSP(context);
         const webAbsoluteUrl = context.pageContext.web.absoluteUrl;
 
-        // Fetch nav hierarchy and branding in parallel
         const navService = new GlobalNavService(sp, webAbsoluteUrl);
         const brandingService = new BrandingConfigService(sp);
 
-        const [items, brandingConfig] = await Promise.all([
+        // Fetch GlobalNav, DivisionNav, and branding in parallel
+        // DivisionNav is wrapped in its own catch so it can't break the main fetch
+        const [items, brandingConfig, divisionItems] = await Promise.all([
           navService.getNavHierarchy(listTitle),
           brandingService.getConfig(),
+          navService.getNavHierarchy(DIVISION_NAV_LIST).catch((divErr) => {
+            console.warn("[Header] DivisionNav fetch failed (non-blocking):", divErr);
+            return [] as IGlobalNavItem[];
+          }),
         ]);
 
-        console.log("[Header] Fetched " + items.length + " top-level nav items from SharePoint");
+        console.log("[Header] Fetched " + items.length + " GlobalNav + " + divisionItems.length + " DivisionNav items");
 
         const branding: IBrandingConfig = brandingConfig || {};
         const row1Bg = branding.headerRow1Bg || DEFAULT_ROW1_BG;
         const middleRowBg = branding.middleRowBg || DEFAULT_MIDDLE_ROW_BG;
-        const logoUrl = branding.logoUrl || undefined;
+        const row2Bg = branding.headerRow2Bg || DEFAULT_ROW2_BG;
+        const hoverColor = branding.hoverColor || undefined;
+        const logoUrl = normalizeLogoUrl(branding.logoUrl, webAbsoluteUrl);
         const searchPlaceholder = branding.searchPlaceholder || DEFAULT_SEARCH_PLACEHOLDER;
 
         if (!cancelled) {
           setState({
             items,
+            divisionItems,
             row1Bg,
             middleRowBg,
+            row2Bg,
+            hoverColor,
             logoUrl,
             searchPlaceholder,
             siteUrl: webAbsoluteUrl,
+            siteTitle: context.pageContext.web.title || "Intranet",
             loading: false,
             error: false,
           });
@@ -120,11 +148,15 @@ const Header: React.FC<IHeaderProps> = ({ context, listTitle }) => {
         if (!cancelled) {
           setState({
             items: DEBUG_FALLBACK_ITEMS,
+            divisionItems: [],
             row1Bg: DEFAULT_ROW1_BG,
             middleRowBg: DEFAULT_MIDDLE_ROW_BG,
+            row2Bg: DEFAULT_ROW2_BG,
+            hoverColor: undefined,
             logoUrl: undefined,
             searchPlaceholder: DEFAULT_SEARCH_PLACEHOLDER,
             siteUrl: context.pageContext.web.absoluteUrl,
+            siteTitle: context.pageContext.web.title || "Intranet",
             loading: false,
             error: false,
           });
@@ -132,12 +164,9 @@ const Header: React.FC<IHeaderProps> = ({ context, listTitle }) => {
       }
     };
 
-    fetchData()
-      .catch(() => { /* handled above */ });
+    fetchData().catch(() => { /* handled above */ });
 
-    return (): void => {
-      cancelled = true;
-    };
+    return (): void => { cancelled = true; };
   }, [context, listTitle]);
 
   // ─── Render States ───────────────────────────────────────────────
@@ -173,14 +202,27 @@ const Header: React.FC<IHeaderProps> = ({ context, listTitle }) => {
   }
 
   return (
-    <HeaderView
-      items={state.items}
-      row1Bg={state.row1Bg}
-      middleRowBg={state.middleRowBg}
-      logoUrl={state.logoUrl}
-      searchPlaceholder={state.searchPlaceholder}
-      siteUrl={state.siteUrl}
-    />
+    <div>
+      {/* Row 1 + Row 2 (existing header — safe) */}
+      <HeaderView
+        items={state.items}
+        row1Bg={state.row1Bg}
+        middleRowBg={state.middleRowBg}
+        logoUrl={state.logoUrl}
+        searchPlaceholder={state.searchPlaceholder}
+        siteUrl={state.siteUrl}
+        siteTitle={state.siteTitle}
+      />
+
+      {/* Row 3 — DivisionNav (separate container — isolated) */}
+      {state.divisionItems.length > 0 && (
+        <DivisionNav
+          items={state.divisionItems}
+          row2Bg={state.row2Bg}
+          hoverColor={state.hoverColor}
+        />
+      )}
+    </div>
   );
 };
 

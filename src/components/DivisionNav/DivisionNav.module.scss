@@ -1,0 +1,71 @@
+/* ─── Row 3: Division Navigation ────────────────────────────────────── */
+
+.divisionNav {
+  width: 100%;
+  background-color: #99ae7a; /* default; overridden by inline style */
+  box-sizing: border-box;
+}
+
+.divisionNavInner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  min-height: 36px;
+  gap: 0;
+}
+
+.divNavLink {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover,
+  &:focus {
+    background-color: rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+.divNavLinkDisabled {
+  color: #ffffff;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────── */
+
+@media screen and (max-width: 768px) {
+  .divisionNavInner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 4px 0;
+  }
+
+  .divNavLink {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}

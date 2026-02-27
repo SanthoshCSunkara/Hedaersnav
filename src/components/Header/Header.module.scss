@@ -1,0 +1,427 @@
+/* ─── Global Header — Row 1 ─────────────────────────────────────────── */
+
+.globalHeader {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #49742a; /* default; overridden by inline style from BrandingConfig */
+  z-index: 10000;
+  box-sizing: border-box;
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  min-height: 44px;
+}
+
+/* ─── Desktop Navigation ────────────────────────────────────────────── */
+
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+/* Shared top-level link style (used for plain links AND dropdown triggers) */
+.navLink {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 0;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover,
+  &:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    text-decoration: none;
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+/* Dropdown trigger button extra styles */
+.navTrigger {
+  /* inherits .navLink via className concatenation */
+  color: #ffffff;
+}
+
+.navLinkDisabled {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Caret icon for dropdown triggers */
+.caretIcon {
+  font-size: 10px;
+  margin-left: 2px;
+  line-height: 1;
+}
+
+/* ─── Desktop Dropdown ──────────────────────────────────────────────── */
+
+.navItemWithDropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.dropdownPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  max-width: 340px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10001;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.dropdownHidden {
+  display: none;
+}
+
+.dropdownItem {
+  color: #333333;
+  text-decoration: none;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  transition: background-color 0.12s ease;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    background-color: #f3f3f3;
+    text-decoration: none;
+    color: #1a1a1a;
+  }
+
+  &:focus {
+    outline: 2px solid #49742a;
+    outline-offset: -2px;
+  }
+}
+
+.dropdownItemDisabled {
+  color: #999999;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ─── Mobile Menu Button ────────────────────────────────────────────── */
+
+.menuButton {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  line-height: 1.4;
+  gap: 6px;
+  align-items: center;
+
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+/* ─── Mobile Panel ──────────────────────────────────────────────────── */
+
+.mobilePanel {
+  display: none;
+  flex-direction: column;
+  background-color: #3d6324;
+  padding: 4px 0;
+}
+
+.mobilePanelHidden {
+  display: none !important;
+}
+
+.mobileLink {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.1);
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+.mobileLinkDisabled {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Mobile accordion section (parent with children) */
+.mobileSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileSectionTrigger {
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-family: inherit;
+
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+.mobileSectionPanel {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.mobileSubLink {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px 10px 32px;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  transition: background 0.15s ease;
+
+  &:hover,
+  &:focus {
+    background: rgba(255, 255, 255, 0.1);
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: -2px;
+  }
+}
+
+/* ─── Row 2: Middle Row (Logo + Search) ─────────────────────────────── */
+
+.middleRow {
+  width: 100%;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-sizing: border-box;
+}
+
+.middleRowInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  min-height: 50px;
+}
+
+/* Logo */
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.85;
+  }
+
+  &:focus {
+    outline: 2px solid #49742a;
+    outline-offset: 2px;
+  }
+}
+
+.logoImage {
+  max-height: 40px;
+  width: auto;
+  display: block;
+}
+
+.logoFallback {
+  font-size: 20px;
+  font-weight: 700;
+  color: #49742a;
+  white-space: nowrap;
+}
+
+/* Search Form */
+.searchForm {
+  display: flex;
+  align-items: center;
+  max-width: 400px;
+  width: 100%;
+  margin-left: 20px;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #cccccc;
+  border-right: none;
+  border-radius: 3px 0 0 3px;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.4;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #49742a;
+    box-shadow: 0 0 0 1px #49742a;
+  }
+
+  &::placeholder {
+    color: #999999;
+  }
+}
+
+.searchButton {
+  padding: 8px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  background-color: #49742a;
+  color: #ffffff;
+  border: 1px solid #49742a;
+  border-radius: 0 3px 3px 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #3d6324;
+    border-color: #3d6324;
+  }
+
+  &:focus {
+    outline: 2px solid #49742a;
+    outline-offset: -2px;
+  }
+}
+
+/* ─── Status Messages ───────────────────────────────────────────────── */
+
+.statusMessage {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  padding: 12px 14px;
+}
+
+/* ─── Responsive Breakpoint ─────────────────────────────────────────── */
+
+@media screen and (max-width: 768px) {
+  .desktopNav {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .mobilePanel {
+    display: flex;
+  }
+
+  .mobilePanelHidden {
+    display: none !important;
+  }
+
+  .middleRowInner {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    padding: 10px 16px;
+  }
+
+  .searchForm {
+    max-width: 100%;
+    margin-left: 0;
+  }
+}
